@@ -22,6 +22,7 @@ module Guard
         # @option options [Number] port the server port
         # @option options [String] server_env the Rails environment
         # @option options [Number] server_timeout the server start timeout
+        # @option options [String] server_command the custom server start command to use when server is set to :custom
         # @option options [String] spec_dir the spec directory
         # @option options [String] rackup_config custom rackup config to use (i.e. spec/dummy/config.ru for mountable engines)
         #
@@ -38,6 +39,8 @@ module Guard
               start_unicorn_server(port, options)
             when :jasmine_gem
               start_rake_server(port, 'jasmine')
+            when :custom
+              start_custom_server(options[:server_command])
             else
               start_rake_server(port, server.to_s) unless server == :none
           end
@@ -111,6 +114,21 @@ module Guard
           ::Guard::UI.info "Guard::Jasmine starts Jasmine Gem test server on port #{ port }."
 
           self.process = ChildProcess.build('rake', task, "JASMINE_PORT=#{ port }")
+          self.process.io.inherit! if ::Guard.respond_to?(:options) && ::Guard.options && ::Guard.options[:verbose]
+          self.process.start
+
+        rescue => e
+          ::Guard::UI.error "Cannot start Rake task server: #{ e.message }"
+        end
+
+        # Start a custom server to run the jasmine specs.
+        #
+        # @param [String] command the command to start the server
+        #
+        def start_custom_server(command)
+          ::Guard::UI.info "Guard::Jasmine starts custom Jasmine Gem test server."
+
+          self.process = ChildProcess.build(command)
           self.process.io.inherit! if ::Guard.respond_to?(:options) && ::Guard.options && ::Guard.options[:verbose]
           self.process.start
 

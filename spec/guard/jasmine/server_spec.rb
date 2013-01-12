@@ -300,6 +300,27 @@ describe Guard::Jasmine::Server do
       end
     end
 
+    context 'with custom server strategy' do
+      let(:options) do
+        defaults.merge({ :server => :custom, :server_command => 'bundle exec foreman run unicorn_rails' })
+      end
+
+      it 'does not auto detect a server' do
+        server.should_not_receive(:detect_server)
+        server.start(options)
+      end
+
+      it 'does wait for the server' do
+        server.should_receive(:wait_for_server)
+        server.start(options)
+      end
+
+      it 'starts a custom server' do
+        server.should_receive(:start_custom_server).with('bundle exec foreman run unicorn_rails')
+        server.start(options)
+      end
+    end
+
     context 'with the :none strategy' do
       let(:options) do
         defaults.merge({ :server => :none })
