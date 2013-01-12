@@ -40,7 +40,7 @@ module Guard
             when :jasmine_gem
               start_rake_server(port, 'jasmine')
             when :custom
-              start_custom_server(options[:server_command])
+              start_custom_server(options[:server_command], port)
             else
               start_rake_server(port, server.to_s) unless server == :none
           end
@@ -124,8 +124,12 @@ module Guard
         # Start a custom server to run the jasmine specs.
         #
         # @param [String] command the command to start the server
+        # @param [Number] port the port the custom server runs on
         #
-        def start_custom_server(command)
+        def start_custom_server(command, port = nil)
+          unless port
+            ::Guard::UI.warning 'Failure to specify the port of your custom server as an option will result in a server timeout warning.'
+          end
           ::Guard::UI.info "Guard::Jasmine starts custom Jasmine Gem test server."
 
           self.process = ChildProcess.build(command)
